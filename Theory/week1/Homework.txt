@@ -1,0 +1,37 @@
+1
+5 5 
+1 2 3 2 1 
+1 2 5 2 3
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+
+    freopen("Homework.txt","r",stdin);
+    int n;
+    cin >> n;
+    int a,b;
+    cin >> a >> b;
+    int list1[a+1],list2[b+1];
+    int cnt = 0;
+    map <int,int> mapList1,mapList2;
+    for(int i = 0;i < a; i++){
+        cin >> list1[i];
+        mapList1[list1[i]]+=1;
+    }
+    for(int i = 0;i < a; i++){
+        cin >> list2[i];
+        mapList2[list2[i]]+=1;
+    }
+    // for(auto &pair : mapList1){
+    //     cout << pair.first << ": " << pair.second << endl;
+    // }
+    for(const auto &pair: mapList1 ){
+        if(mapList2.find(pair.first) != mapList2.end()){
+            cnt += min(mapList1[pair.first],mapList2[pair.first]);
+        }
+    }
+    cout << a + b - cnt*2  << endl;
+    return 0;
+}
