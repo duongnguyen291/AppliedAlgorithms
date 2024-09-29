@@ -26,11 +26,18 @@ void sol (int x, int l, int r) {
         return;
     }
     int mid = (l + r) >> 1;
-    sol(x << 1, l, mid);
-    sol(x << 1 | 1, mid + 1, r);
+    sol(x << 1, l, mid); // x << 1 = 2 * x
+    sol(x << 1 | 1, mid + 1, r); // x << 1 | 1 = 2*x + 1
     st[x] = min(st[x << 1], st[x << 1 | 1]); //Lưu giá trị nhỏ nhất của mỗi đoạn mà nó đại diện
 }
-
+void update(int x,int l, int r, int i, int val){
+    if(i < l || i > r) return;
+    if(l == r) st[x] == val;
+    int mid = (l+r) >> 1; int leftChild = x << 1; int rightChild = x << 1 | 1;
+    update(leftChild, 1, mid, i, val);
+    update(rightChild, mid + 1, r,i,val);
+    st[x] = min(st[leftChild],st[rightChild]);
+}
 int getAns (int x, int l, int r, int u, int v) {
     if(u > r || v < l) return INT_MAX;
     if(u <= l && r <= v) return st[x];
