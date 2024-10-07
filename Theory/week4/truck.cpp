@@ -1,65 +1,102 @@
-#include <iostream>
-#include <vector>
-#include <climits>
-
+#include <bits/stdc++.h>
 using namespace std;
 
+#define MAX 50
 int n, K, Q;
-vector<int> demand;
-vector<vector<int>> dist;
-int bestDistance = INT_MAX;
+int y[MAX], x[MAX], segments = 0, nbR = 0;
+int c[MAX][MAX], f = 0, fopt = INT_MAX, visited[MAX], d[MAX], load[MAX];
+int cmin = INT_MAX;
 
-vector<int> visited;
-vector<int> load;
-int f = 0;
-int f_star = INT_MAX;
+bool checkX(int v, int k) {
+    if (v == 0) return true;
+    if (visited[v]) return false;
+    if (load[k] + d[v] > Q) return false;
+    return true;
+}
 
-void tryRoute(int vehicle, int client, int routeDistance) {
-    if (vehicle == K + 1) {
-        for (int i = 1; i <= n; i++) {
-            if (!visited[i]) return;
+void TryX(int s, int k) {
+    if (s == 0) { // back to depot
+        if (k == K) return; // all trucks checked
+        TryX(y[k + 1], k + 1); // move to next truck
+    } else {
+        for (int v = 0; v <= n; v++) {
+            if (checkX(v, k)) {
+                x[s] = v;
+                visited[v] = true;
+                f += c[s][v]; // update total cost
+                load[k] += d[v];
+                segments++;
+                if (v > 0) { // still visiting clients
+                    int lowerB = f + (n + nbR - segments) * cmin;
+                    if (lowerB < fopt) TryX(v, k); // only continue if promising
+                } else { // back to depot, complete this truck's route
+                    if (k == K) {
+                        if (segments == n + nbR) {
+                            if (f < fopt) fopt = f; // update optimal cost
+                        }
+                    } else {
+                        int lowerB = f + (n + nbR - segments) * cmin;
+                        if (lowerB < fopt) TryX(y[k + 1], k + 1); // next truck
+                    }
+                }
+                // backtrack
+                visited[v] = false;
+                f -= c[s][v];
+                load[k] -= d[v];
+                segments--;
+            }
         }
-        bestDistance = min(bestDistance, routeDistance);
-        return;
     }
+}
 
-    for (int i = 1; i <= n; i++) {
-        if (!visited[i] && load[vehicle] + demand[i - 1] <= Q) {
-            visited[i] = true;
-            load[vehicle] += demand[i - 1];
+bool checkY(int v, int k) {
+    if (v == 0) return true;
+    if (visited[v]) return false;
+    if (load[k] + d[v] > Q) return false;
+    return true;
+}
 
-            int distToNext = dist[client][i] + dist[i][0];
-            tryRoute(vehicle, i, routeDistance + distToNext);
-
-            visited[i] = false;
-            load[vehicle] -= demand[i - 1];
+void TryY(int k) {
+    int s = 0;
+    if (y[k - 1] > 0) s = y[k - 1] + 1;
+    for (int v = s; v <= n; v++) {
+        if (checkY(v, k)) {
+            y[k] = v;
+            if (v > 0) {
+                visited[v] = 1;
+                f += c[0][v];
+                load[k] += d[v];
+                segments++;
+            }
+            if (k == K) {
+                nbR = segments;
+                TryX(y[1], 1); // start trying truck routes
+            } else {
+                TryY(k + 1);
+            }
+            if (v > 0) {
+                visited[v] = 0;
+                f -= c[0][v];
+                load[k] -= d[v];
+                segments--;
+            }
         }
     }
-
-    tryRoute(vehicle + 1, 0, routeDistance);
 }
 
 int main() {
-    freopen("truck.txt","r",stdin);
-    cin >> n >> K >> Q;
-    demand.resize(n);
-    for (int i = 0; i < n; i++) {
-        cin >> demand[i];
-    }
-
-    dist.resize(n + 1, vector<int>(n + 1));
+    cin >> n >> K >> Q; 
+    for (int i = 1; i <= n; i++) cin >> d[i];
+    
     for (int i = 0; i <= n; i++) {
         for (int j = 0; j <= n; j++) {
-            cin >> dist[i][j];
+            cin >> c[i][j];
+            if (i != j && c[i][j] < cmin) cmin = c[i][j]; // calculate minimum distance
         }
     }
 
-    visited.resize(n + 1, false);
-    load.resize(K + 1, 0);
-
-    tryRoute(1, 0, 0);
-
-    cout << bestDistance << endl;
+    TryY(1); // start with truck 1
+    cout << fopt << endl;
 
     return 0;
 }
