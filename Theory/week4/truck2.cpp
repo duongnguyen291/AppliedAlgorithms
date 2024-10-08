@@ -2,84 +2,70 @@
 using namespace std;
 #define MAX 50
 int n,K,Q;
-int y[MAX],x[MAX], c[MAX][MAX], segment = 0, numberR = 0;
-int f = 0, fopt = INT_MAX, cmin = INT_MAX;
-int visited[MAX], d[MAX],load[MAX];
+int y[MAX], x[MAX],visited[MAX],c[MAX][MAX],d[MAX],load[MAX];
+int f,fopt = INT_MAX,segment,cmin,numberR;
 
-//step 4: building checkX
-bool checkX(int v, int k) {
-    if (v == 0) return true;
-    if (visited[v]) return false;
-    if (load[k] + d[v] > Q) return false;
+bool checkX(int v,int k){
+    if(v==0) return true;
+    if(visited[v]) return false;
+    if(load[k] + d[v] > Q) return false;
     return true;
 }
-//Step 3:
+
 void TryX(int s, int k){
     if(s == 0){
-        if(k == K ) return;
+        if(k == K) return;
         TryX(y[k+1],k+1);
-    }
-    else {
-        for (int v = 0; v <= n; v++) {
-            if (checkX(v, k)) {
-                x[s] = v;
-                visited[v] = true;
-                f += c[s][v]; // update total cost
-                load[k] += d[v];
-                segment++;
-                if (v > 0) { // still visiting clients
-                    int lowerB = f + (n + numberR - segment) * cmin;
-                    if (lowerB < fopt) TryX(v, k); // only continue if promising
-                } else { // back to depot, complete this truck's route
-                    if (k == K) {
-                        if (segment == n + numberR) {
-                            if (f < fopt) fopt = f; // update optimal cost
+    }else{
+        for(int v = 0; v <= n; v++){
+            if(checkX(v,k)){
+                x[s] = v;visited[v]=1;f+=c[s][v];load[k]+=d[v];segment++;
+                if(v>0){
+                    int lowerB = f + (n+numberR-segment)*cmin;
+                    if(lowerB < fopt) TryX(v,k);
+                }else{
+                    if(k==K){
+                        if(segment==n+numberR){
+                            if(f < fopt) fopt = f;
                         }
-                    } else {
+                    }else{
                         int lowerB = f + (n + numberR - segment) * cmin;
-                        if (lowerB < fopt) TryX(y[k + 1], k + 1); // next truck
+                        if(lowerB < fopt)  TryX(y[k+1],k+1);
                     }
+                    visited[v]=0;f-=c[s][v];load[k]-=d[v];segment--;
                 }
-                // backtrack
-                visited[v] = false;
-                f -= c[s][v];
-                load[k] -= d[v];
-                segment--;
             }
         }
-     }
+    }
 }
-//Step 2: buidling checkY to check the validation of tryY
-
-bool checkY(int v, int k) {
-    if (v == 0) return true;
-    if (visited[v]) return false;
-    if (load[k] + d[v] > Q) return false;
+bool checkY(int v,int k){
+    if(v == 0) return true;
+    if(visited[v]) return false;
+    if(load[k] + d[v] > Q) return false;
     return true;
 }
-//Step 1: build tryY to find the first customer which the truck going
 void TryY(int k){
     int s = 0;
     if(y[k-1] > 0) s = y[k-1] + 1;
     for(int v = s; v <= n; v++){
         if(checkY(v,k)){
-            y[k] = v; // cho xe thu k di toi khach hang v
-            if(v > 0){
-                visited[v] = 1; f+=c[0][v];load[k]+=d[v]; segment++;
-
-            }
-            if(k == K){
-                numberR = segment;
-                TryX(y[1],1); //sau khi da tim dc customer dau tien cho cac xe thi bat dau tim duong 
-            }else{
-                TryY(k+1);
-            }
-            if(v > 0){
-                 visited[v] = 0; f-=c[0][v];load[k]-=d[v]; segment--; //backtracking
-            }
+            y[k] = v;
+            if(v>0){visited[v]=1;f+=c[0][v];load[K]+=d[v];segment++;}
+        }
+        if(k == K){
+            numberR = segment;
+            TryX(y[1],1);
+        }
+        else{
+            TryY(k+1);
+        }
+        if(v > 0){
+            visited[v]=0;f-=c[0][v];load[K]-=d[v];segment--;
         }
     }
-} 
+}
+
+
 int main() {
     cin >> n >> K >> Q; 
     for (int i = 1; i <= n; i++) cin >> d[i];
