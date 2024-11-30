@@ -13,7 +13,6 @@ int timeDfs;
 void dfs(int u) {
     num[u] = low[u] = ++timeDfs;
     int children = 0;
-
     for (int v : adj[u]) {
         if (num[v] == 0) { // Nếu đỉnh v chưa được thăm
             children++;
@@ -44,6 +43,7 @@ void dfs(int u) {
 }
 
 int main() {
+    freopen("ex1.txt","r",stdin);
     int n, m;
     cin >> n >> m;
 
