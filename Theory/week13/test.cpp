@@ -1,54 +1,49 @@
 #include <bits/stdc++.h>
 using namespace std;
-#define MAXX 100001
-vector<int> adj[MAXX], trans_adj[MAXX];
-stack<int> s;
-bool visited[MAXX];
-void dfs1(int u){
-    visited[u] = 1;
-    for(int v : adj[u]){
-        if(!visited[v]){
-            dfs1(v);
-        }
-    }
-    s.push(u);
+struct Node{
+    int u,v,w;
+};
+vector<Node> adj;
+vector<int> parent;
+void addEdge(int i, int u, int v, int w){
+    adj[i].u = u;
+    adj[i].v = v;
+    adj[i].w = w;
 }
-void dfs2(int u){
-    visited[u] = 1;
-    for(int v : trans_adj[u]){
-        if(!visited[v]){
-            dfs2(v);
-        }
+int findParent(int u){
+    if(parent[u]!=u){
+        parent[u] = findParent(parent[u]);
     }
+    return parent[u];
+}
 
-}
 int main(){
-    freopen("ex1.txt","r",stdin);
-    int n,m;
-    cin>>n>>m;
-    for(int i=0;i<m;i++){
-        int u,v;
-        cin >> u >> v;
-        adj[u].push_back(v);
-        trans_adj[v].push_back(u);
+    freopen("ex2.txt","r",stdin);
+    int n, m;
+    cin >> n >> m;
+    adj.resize(m);
+    parent.resize(n+1);
+    for(int i = 0; i < m; i++){
+        int u,v,w;
+        cin >> u >> v >> w;
+        addEdge(i,u,v,w);
     }
-    fill(visited, visited + n + 1, false);
-    for(int i = 1; i <= n; i++){
-        if(!visited[i]){
-            dfs1(i);
+    sort(adj.begin(),adj.end(),[](const Node& a,const Node& b){
+        return a.w < b.w;
+    });
+    for(int i = 0; i < n; i++){
+        parent[i] = i;
+    }
+    int res = 0;
+    for(int i = 0; i < m; i++){
+        int u = adj[i].u;
+        int v = adj[i].v;
+        int w = adj[i].w;
+        if(findParent(u) != findParent(v)){ // khong tao thanh cycle
+            res += w;
+            parent[findParent(u)] = findParent(v);
         }
     }
-    fill(visited, visited + n + 1,false);
-    int cnt = 0;
-    while(!s.empty()){
-        int u = s.top();
-        s.pop();
-        if(!visited[u]){
-            dfs2(u);
-            cnt++;
-        }
-    }
-    cout << cnt << endl;
-
+    cout << res << endl;
     return 0;
 }
