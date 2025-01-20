@@ -40,7 +40,6 @@ int main(){
         adj[v].push_back({u,w}); // 2->1 = 1
     }
     dist[1] = 0;
-    DFS(1,1);
     for(auto &a : dist){
         
     }    
